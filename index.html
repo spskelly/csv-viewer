@@ -21,15 +21,15 @@
                 </div>
             </div>
             <div class="controls">
-                <button id="openFile" class="btn">Open File</button>
-                <button id="exportFiltered" class="btn" style="display: none;">Export Filtered</button>
-                <button id="toggleTheme" class="btn">🌓</button>
+                <button id="openFile" class="btn" aria-label="Open CSV file">Open File</button>
+                <button id="exportFiltered" class="btn" style="display: none;" aria-label="Export filtered data as CSV">Export Filtered</button>
+                <button id="toggleTheme" class="btn" aria-label="Toggle light and dark theme">🌓</button>
             </div>
         </header>
 
-        <div id="dropZone" class="drop-zone">
+        <div id="dropZone" class="drop-zone" role="region" aria-label="File drop zone">
             <div class="drop-zone-content">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                     <polyline points="14 2 14 8 20 8"></polyline>
                     <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -44,35 +44,47 @@
         <div id="tableContainer" style="display: none;">
             <div class="toolbar">
                 <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Search all columns..." />
-                    <button id="clearSearch" class="btn-icon">✕</button>
+                    <input type="text" id="searchInput" placeholder="Search all columns..." aria-label="Search all columns" />
+                    <button id="clearSearch" class="btn-icon" aria-label="Clear search">✕</button>
                 </div>
-                <div class="stats" id="statsContainer"></div>
+                <button id="resetAll" class="btn-small btn-reset" style="display: none;" aria-label="Reset all filters and sorting">Reset All</button>
+                <div class="stats" id="statsContainer" aria-live="polite"></div>
             </div>
 
             <div class="table-wrapper">
-                <table id="dataTable">
+                <table id="dataTable" role="grid" aria-label="CSV data">
                     <thead id="tableHead"></thead>
                     <tbody id="tableBody"></tbody>
                 </table>
             </div>
 
             <div class="pagination" id="pagination">
-                <button id="prevPage" class="btn-small">← Prev</button>
-                <span id="pageInfo"></span>
-                <button id="nextPage" class="btn-small">Next →</button>
+                <button id="prevPage" class="btn-small" aria-label="Previous page">← Prev</button>
+                <span id="pageInfo" aria-live="polite"></span>
+                <button id="nextPage" class="btn-small" aria-label="Next page">Next →</button>
+                <select id="rowsPerPage" aria-label="Rows per page">
+                    <option value="50">50 rows</option>
+                    <option value="100" selected>100 rows</option>
+                    <option value="250">250 rows</option>
+                    <option value="500">500 rows</option>
+                </select>
             </div>
         </div>
 
-        <div id="columnStats" class="modal" style="display: none;">
+        <div id="columnStats" class="modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="statsColumnName">
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 id="statsColumnName"></h3>
-                    <button id="closeStats" class="btn-icon">✕</button>
+                    <button id="closeStats" class="btn-icon" aria-label="Close statistics">✕</button>
                 </div>
                 <div id="statsContent"></div>
             </div>
         </div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>Parsing file...</p>
     </div>
 
     <input type="file" id="fileInput" accept=".csv,.tsv,.txt" style="display: none;">

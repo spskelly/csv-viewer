@@ -37,6 +37,9 @@ const columnStatsModal = document.getElementById('columnStats');
 const statsColumnName = document.getElementById('statsColumnName');
 const statsContent = document.getElementById('statsContent');
 const closeStatsBtn = document.getElementById('closeStats');
+const loadingOverlay = document.getElementById('loadingOverlay');
+const rowsPerPageSelect = document.getElementById('rowsPerPage');
+const resetAllBtn = document.getElementById('resetAll');
 
 // theme handling
 let isDarkMode = true;
@@ -83,8 +86,13 @@ dropZone.addEventListener('drop', async (e) => {
 // load csv file
 async function loadCSVFile(file) {
   currentFileName = file.name;
+  loadingOverlay.style.display = 'flex';
+
   const text = await file.text();
-  
+
+  // yield to browser so the overlay paints before parsing blocks
+  await new Promise(r => setTimeout(r, 0));
+
   Papa.parse(text, {
     header: true,
     skipEmptyLines: true,
@@ -94,19 +102,22 @@ async function loadCSVFile(file) {
       currentPage = 1;
       sortColumn = null;
       sortDirection = 'asc';
-      
+      searchInput.value = '';
+
       updateUI();
       renderTable();
-      
+
       // show table, hide drop zone
       dropZone.style.display = 'none';
       tableContainer.style.display = 'block';
       fileInfo.style.display = 'flex';
       exportFilteredBtn.style.display = 'inline-block';
-      
+
       document.title = `${file.name} - CSV Viewer`;
+      loadingOverlay.style.display = 'none';
     },
     error: (error) => {
+      loadingOverlay.style.display = 'none';
       alert('error parsing csv: ' + error.message);
     }
   });
@@ -121,9 +132,11 @@ function updateUI() {
   // update stats
   const totalRows = csvData.length;
   const filteredRows = filteredData.length;
-  statsContainer.textContent = filteredRows < totalRows 
+  statsContainer.textContent = filteredRows < totalRows
     ? `Showing ${filteredRows} of ${totalRows} rows`
     : `${totalRows} rows total`;
+
+  updateResetButton();
 }
 
 // render table
@@ -138,16 +151,19 @@ function renderTable() {
   
   // render header
   tableHead.innerHTML = `
-    <tr>
-      ${headers.map((header, i) => `
-        <th data-column="${i}" class="${sortColumn === i ? 'sorted sorted-' + sortDirection : ''}">
+    <tr role="row">
+      ${headers.map((header, i) => {
+        const isSorted = sortColumn === i;
+        const ariaSortVal = isSorted ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none';
+        return `
+        <th data-column="${i}" role="columnheader" aria-sort="${ariaSortVal}" class="${isSorted ? 'sorted sorted-' + sortDirection : ''}">
           <div class="th-content">
             <span>${escapeHtml(header)}</span>
-            <span class="sort-indicator">${sortColumn === i ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
+            <span class="sort-indicator" aria-hidden="true">${isSorted ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
           </div>
-          <button class="stats-btn" data-column="${i}" title="Show statistics">📊</button>
-        </th>
-      `).join('')}
+          <button class="stats-btn" data-column="${i}" title="Show statistics for ${escapeHtml(header)}" aria-label="Show statistics for ${escapeHtml(header)}">📊</button>
+        </th>`;
+      }).join('')}
     </tr>
   `;
   
@@ -186,59 +202,67 @@ function renderTable() {
   updatePagination();
 }
 
+// apply current filter and sort to produce filteredData
+function applyFilterAndSort() {
+  const query = searchInput.value.toLowerCase();
+
+  // filter from original data
+  if (!query) {
+    filteredData = [...csvData];
+  } else {
+    filteredData = csvData.filter(row =>
+      Object.values(row).some(val =>
+        String(val).toLowerCase().includes(query)
+      )
+    );
+  }
+
+  // apply sort if active
+  if (sortColumn !== null && filteredData.length > 0) {
+    const headers = Object.keys(filteredData[0]);
+    const column = headers[sortColumn];
+
+    filteredData.sort((a, b) => {
+      let aVal = a[column];
+      let bVal = b[column];
+
+      const aNum = parseFloat(String(aVal).replace(/,/g, ''));
+      const bNum = parseFloat(String(bVal).replace(/,/g, ''));
+
+      if (!isNaN(aNum) && !isNaN(bNum)) {
+        return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
+      }
+
+      aVal = String(aVal).toLowerCase();
+      bVal = String(bVal).toLowerCase();
+
+      if (sortDirection === 'asc') {
+        return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+      } else {
+        return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+      }
+    });
+  }
+}
+
 // handle sorting
 function handleSort(columnIndex) {
-  const headers = Object.keys(filteredData[0]);
-  const column = headers[columnIndex];
-  
   if (sortColumn === columnIndex) {
     sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
   } else {
     sortColumn = columnIndex;
     sortDirection = 'asc';
   }
-  
-  filteredData.sort((a, b) => {
-    let aVal = a[column];
-    let bVal = b[column];
-    
-    // try to parse as numbers
-    const aNum = parseFloat(aVal);
-    const bNum = parseFloat(bVal);
-    
-    if (!isNaN(aNum) && !isNaN(bNum)) {
-      return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
-    }
-    
-    // string comparison
-    aVal = String(aVal).toLowerCase();
-    bVal = String(bVal).toLowerCase();
-    
-    if (sortDirection === 'asc') {
-      return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
-    } else {
-      return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
-    }
-  });
-  
+
+  applyFilterAndSort();
   currentPage = 1;
+  updateUI();
   renderTable();
 }
 
 // search/filter
-searchInput.addEventListener('input', (e) => {
-  const query = e.target.value.toLowerCase();
-  
-  if (!query) {
-    filteredData = [...csvData];
-  } else {
-    filteredData = csvData.filter(row => {
-      return Object.values(row).some(val => 
-        String(val).toLowerCase().includes(query)
-      );
-    });
-  }
-  
+searchInput.addEventListener('input', () => {
+  applyFilterAndSort();
   currentPage = 1;
   updateUI();
   renderTable();
@@ -246,7 +270,7 @@ searchInput.addEventListener('input', (e) => {
 
 clearSearchBtn.addEventListener('click', () => {
   searchInput.value = '';
-  filteredData = [...csvData];
+  applyFilterAndSort();
   currentPage = 1;
   updateUI();
   renderTable();
@@ -277,6 +301,30 @@ nextPageBtn.addEventListener('click', () => {
     window.scrollTo(0, 0);
   }
 });
+
+rowsPerPageSelect.addEventListener('change', (e) => {
+  rowsPerPage = parseInt(e.target.value, 10);
+  currentPage = 1;
+  renderTable();
+});
+
+// reset all filters, sort, and search
+resetAllBtn.addEventListener('click', () => {
+  searchInput.value = '';
+  sortColumn = null;
+  sortDirection = 'asc';
+  applyFilterAndSort();
+  currentPage = 1;
+  updateUI();
+  renderTable();
+});
+
+// show/hide Reset All button when filters or sort are active
+function updateResetButton() {
+  const hasSearch = searchInput.value.length > 0;
+  const hasSort = sortColumn !== null;
+  resetAllBtn.style.display = (hasSearch || hasSort) ? 'inline-block' : 'none';
+}
 
 // column statistics
 function showColumnStats(columnName) {
@@ -329,6 +377,7 @@ function showColumnStats(columnName) {
   
   statsContent.innerHTML = html;
   columnStatsModal.style.display = 'flex';
+  closeStatsBtn.focus();
 }
 
 closeStatsBtn.addEventListener('click', () => {
