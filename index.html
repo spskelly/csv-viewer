@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Lightweight CSV file viewer and analyzer">
+    <meta name="theme-color" content="#0d1117">
+    <title>CSV Viewer</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <h1>📊 CSV Viewer</h1>
+                <div id="fileInfo" class="file-info" style="display: none;">
+                    <span id="fileName"></span>
+                    <span id="rowCount"></span>
+                    <span id="columnCount"></span>
+                </div>
+            </div>
+            <div class="controls">
+                <button id="openFile" class="btn">Open File</button>
+                <button id="exportFiltered" class="btn" style="display: none;">Export Filtered</button>
+                <button id="toggleTheme" class="btn">🌓</button>
+            </div>
+        </header>
+
+        <div id="dropZone" class="drop-zone">
+            <div class="drop-zone-content">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                <p>Drop a CSV file here or click "Open File"</p>
+                <p class="hint">Supports CSV, TSV, and other delimited files</p>
+            </div>
+        </div>
+
+        <div id="tableContainer" style="display: none;">
+            <div class="toolbar">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search all columns..." />
+                    <button id="clearSearch" class="btn-icon">✕</button>
+                </div>
+                <div class="stats" id="statsContainer"></div>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="dataTable">
+                    <thead id="tableHead"></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="pagination" id="pagination">
+                <button id="prevPage" class="btn-small">← Prev</button>
+                <span id="pageInfo"></span>
+                <button id="nextPage" class="btn-small">Next →</button>
+            </div>
+        </div>
+
+        <div id="columnStats" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="statsColumnName"></h3>
+                    <button id="closeStats" class="btn-icon">✕</button>
+                </div>
+                <div id="statsContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" accept=".csv,.tsv,.txt" style="display: none;">
+
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
