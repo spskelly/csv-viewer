@@ -11,12 +11,17 @@ A lightweight, fast CSV file viewer with sorting, filtering, and statistics. Set
 - 📊 **Column statistics** - Min, max, avg, median, sum, top values
 - 💾 **Export filtered** - Save your filtered/sorted results
 - 🎨 **Dark/Light mode** - Toggle between themes
-- 📄 **Pagination** - Handle large files efficiently (100 rows per page)
+- 🔄 **Reset All** - Clear search, sort, and filters in one click
+- 📄 **Pagination** - Handle large files efficiently (configurable rows per page)
 - 📱 **Responsive** - Works great on desktop and mobile
 
 ## Quick Start
 
-### 1. Serve the files
+### Option A: Use the hosted version
+
+Visit the GitHub Pages deployment linked on this repo — no install needed.
+
+### Option B: Run locally
 
 ```bash
 cd csv-viewer
@@ -44,9 +49,10 @@ Now every CSV file opens instantly with sorting and filtering!
 
 ### Sorting
 Click any column header to sort. Click again to reverse direction. Works intelligently:
-- Detects numbers and sorts numerically
+- Detects numbers and sorts numerically (handles comma-formatted numbers)
 - Falls back to alphabetical for text
 - Shows sort indicator (↑/↓)
+- Sorting and search compose — filtering keeps your sort, sorting keeps your filter
 
 ### Search/Filter
 Type in the search box to filter rows. Searches across ALL columns. Great for finding specific values quickly.
@@ -77,7 +83,8 @@ Uses PapaParse for robust CSV parsing - handles quoted fields, embedded commas, 
 ## Performance
 
 Handles large files well:
-- Pagination keeps UI fast (100 rows/page)
+- Pagination keeps UI fast (50/100/250/500 rows per page)
+- Loading spinner for large file parsing
 - Efficient filtering and sorting
 - Tested with files up to several MB
 
