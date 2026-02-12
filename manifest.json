@@ -18,7 +18,7 @@
   ],
   "file_handlers": [
     {
-      "action": "/",
+      "action": "/csv-viewer/",
       "accept": {
         "text/csv": [".csv"],
         "text/tab-separated-values": [".tsv"],
