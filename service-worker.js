@@ -1,10 +1,10 @@
 const CACHE_NAME = 'csv-viewer-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/app.js',
-  '/manifest.json',
+  '/csv-viewer/',
+  '/csv-viewer/index.html',
+  '/csv-viewer/styles.css',
+  '/csv-viewer/app.js',
+  '/csv-viewer/manifest.json',
   'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js'
 ];
 

@@ -1,6 +1,6 @@
 // register service worker
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/service-worker.js', { scope: '/csv-viewer/' })
+  navigator.serviceWorker.register('/csv-viewer/service-worker.js', { scope: '/csv-viewer/' })
     .then(reg => console.log('service worker registered', reg))
     .catch(err => console.log('service worker registration failed', err));
 }
